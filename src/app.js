@@ -8,6 +8,7 @@ const YAML = require('yamljs');
 
 const stimuliRouter = require('./routes/stimuli');
 const assessmentItemsRouter = require('./routes/assessmentItems');
+const assessmentTestsRouter = require('./routes/assessmentTests');
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use(
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/stimuli', stimuliRouter);
 app.use('/api/assessment-items', assessmentItemsRouter);
+app.use('/api/assessment-tests', assessmentTestsRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {

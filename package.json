@@ -5,7 +5,9 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "seed": "node src/seeds/seed.js",
+    "seed:clear": "node src/seeds/seed.js --clear"
   },
   "dependencies": {
     "@scalar/express": "^0.4.11",
