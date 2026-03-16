@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Completion Projections</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:13px;line-height:1.5}
+nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nav-title{font-size:16px;font-weight:600;color:#111}
+.nav-sub{font-size:11px;color:#9ca3af}
+.nav-tab{padding:5px 14px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#6b7280}
+.nav-tab.active{background:#111;color:#fff;border-color:#111}
+.page{display:none;padding:20px}
+.page.active{display:block}
+
+/* CONTROLS */
+.controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end}
+.ctrl-group{display:flex;flex-direction:column;gap:3px}
+.ctrl-label{font-size:11px;color:#6b7280;font-weight:500}
+.controls select,.controls input{font-size:13px;padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111}
+.controls select:focus,.controls input:focus{outline:none}
+
+/* SUBJECT SUMMARY TABLE */
+.tbl-wrap{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-bottom:20px}
+.stbl{width:100%;border-collapse:collapse;font-size:12px}
+.stbl th{padding:8px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:500;color:#6b7280;font-size:11px;text-align:left;white-space:nowrap}
+.stbl th.c{text-align:center}
+.stbl td{padding:8px 12px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+.stbl td.c{text-align:center}
+.stbl tr:last-child td{border-bottom:none}
+.stbl tr:hover td{background:#fafafa}
+
+/* INLINE PROGRESS */
+.pbar-cell{display:flex;flex-direction:column;gap:2px;align-items:center;min-width:70px}
+.pbar-val{font-size:12px;font-weight:600}
+.pbar-track{width:60px;height:5px;background:#e5e7eb;border-radius:99px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:99px}
+.pbar-arrow{font-size:11px;color:#9ca3af}
+
+/* STATUS COUNT */
+.ok-count{color:#166534;font-weight:600}
+.bad-count{color:#991b1b;font-weight:600}
+.warn-count{color:#854d0e;font-weight:600}
+
+/* STUDENT GRID */
+.section-head{font-size:14px;font-weight:600;color:#111;margin-bottom:10px}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.student-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.card-head{padding:10px 14px;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center}
+.card-name{font-size:13px;font-weight:600;color:#111}
+.card-badges{display:flex;gap:5px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500}
+.b-g{background:#dcfce7;color:#166534}.b-a{background:#fef9c3;color:#854d0e}
+.b-r{background:#fee2e2;color:#991b1b}.b-x{background:#f3f4f6;color:#6b7280}
+
+.col-heads{display:grid;grid-template-columns:minmax(0,1fr) 72px 90px 90px;gap:4px;padding:5px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.04em;text-transform:uppercase}
+.col-heads div{text-align:center}
+.col-heads div:first-child{text-align:left}
+
+.course-row{display:grid;grid-template-columns:minmax(0,1fr) 72px 90px 90px;gap:4px;padding:7px 12px;border-bottom:1px solid #f9fafb;align-items:center}
+.course-row:last-child{border-bottom:none}
+.course-name{font-size:12px;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proj-cell{display:flex;flex-direction:column;align-items:center;gap:1px}
+.proj-pct{font-size:12px;font-weight:600;line-height:1}
+.proj-need{font-size:10px;color:#9ca3af;line-height:1}
+.proj-bar{width:52px;height:4px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:2px}
+.proj-fill{height:100%;border-radius:99px}
+.proj-icon{font-size:13px;line-height:1;margin-bottom:1px}
+
+/* STATUS ICONS */
+.ico-ok{color:#166534}.ico-warn{color:#854d0e}.ico-bad{color:#991b1b}.ico-na{color:#d1d5db}
+
+/* LEGEND */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#6b7280;margin-bottom:16px;padding:8px 12px;background:#fff;border:1px solid #e5e7eb;border-radius:8px}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-sq{width:10px;height:5px;border-radius:99px;flex-shrink:0}
+.notice{font-size:11px;color:#9ca3af;padding:10px 14px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-top:16px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-title">AP Completion Projections</span>
+  <span class="nav-sub">At current pace · March 16, 2026 · Exams begin ~May 5</span>
+  <button class="nav-tab active" onclick="showPage('summary',this)">By subject</button>
+  <button class="nav-tab" onclick="showPage('students',this)">By student</button>
+</nav>
+
+<!-- SUBJECT SUMMARY PAGE -->
+<div class="page active" id="pg-summary">
+  <div class="legend">
+    <span style="font-weight:500;color:#374151;font-size:11px;margin-right:2px">Progress bars:</span>
+    <span class="leg"><span class="leg-sq" style="background:#166534"></span>On track</span>
+    <span class="leg"><span class="leg-sq" style="background:#854d0e"></span>Behind</span>
+    <span class="leg"><span class="leg-sq" style="background:#991b1b"></span>Significantly behind</span>
+    <span style="color:#d1d5db;padding:0 4px">|</span>
+    <span class="leg" style="color:#166534;font-weight:500">&#10003; on track for date</span>
+    <span class="leg" style="color:#854d0e">~ within 5%</span>
+    <span class="leg" style="color:#991b1b">&#10007; will fall short at this pace</span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="stbl" id="subj-tbl"></table>
+  </div>
+  <div class="notice"><b>How to read this table:</b> "Now" = current actual completion % based on items completed. "Mar 31" and "Apr 15" = projected completion at current pace. "On track" counts show how many enrollments are projected to meet the required completion % by that date. Sorted by most enrollments behind on April 15 first — those are the courses needing the most attention.</div>
+</div>
+
+<!-- STUDENT PAGE -->
+<div class="page" id="pg-students">
+  <div class="controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Search student</span>
+      <input id="search" placeholder="Type a name…" oninput="renderStudents()" style="width:200px">
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Filter</span>
+      <select id="vf" onchange="renderStudents()">
+        <option value="all">All students</option>
+        <option value="risk">Behind on Apr 15</option>
+        <option value="ok">On track for Apr 15</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Sort by</span>
+      <select id="sb" onchange="renderStudents()">
+        <option value="name">Name</option>
+        <option value="worst">Most behind first</option>
+        <option value="best">Most ahead first</option>
+      </select>
+    </div>
+    <div id="student-count" style="font-size:12px;color:#6b7280;align-self:flex-end;padding-bottom:8px"></div>
+  </div>
+  <div class="legend">
+    <span class="leg" style="color:#166534;font-weight:500">&#10003; on track</span>
+    <span class="leg" style="color:#854d0e">~ within 5%</span>
+    <span class="leg" style="color:#991b1b">&#10007; will fall short</span>
+    <span style="color:#d1d5db;padding:0 4px">|</span>
+    <span style="font-size:11px;color:#9ca3af">Progress bars show projected %, grey track = 100%. "need X%" = where they must be by that date.</span>
+  </div>
+  <div class="student-grid" id="grid"></div>
+</div>
+
+<script>
+const P={"subjects":[{"name":"AP Biology","n":11,"now":18.9,"mar":35.8,"apr":49.1,"ok_mar":2,"ok_apr":2,"behind_apr":9},{"name":"AP Psychology","n":13,"now":39.7,"mar":48.8,"apr":55.1,"ok_mar":4,"ok_apr":4,"behind_apr":9},{"name":"AP US History","n":13,"now":49.0,"mar":56.3,"apr":63.4,"ok_mar":5,"ok_apr":5,"behind_apr":8},{"name":"AP Literature","n":7,"now":9.6,"mar":11.0,"apr":12.4,"ok_mar":0,"ok_apr":0,"behind_apr":7},{"name":"AP Lang & Comp","n":13,"now":59.1,"mar":62.4,"apr":65.8,"ok_mar":7,"ok_apr":7,"behind_apr":6},{"name":"Physics","n":8,"now":53.1,"mar":53.1,"apr":53.1,"ok_mar":5,"ok_apr":2,"behind_apr":6},{"name":"AP Human Geography","n":21,"now":61.3,"mar":77.7,"apr":83.2,"ok_mar":16,"ok_apr":16,"behind_apr":5},{"name":"AP World History","n":12,"now":64.9,"mar":72.3,"apr":77.1,"ok_mar":7,"ok_apr":7,"behind_apr":5},{"name":"AP Microeconomics","n":4,"now":14.0,"mar":25.7,"apr":37.3,"ok_mar":0,"ok_apr":0,"behind_apr":4},{"name":"AP CS A","n":5,"now":35.2,"mar":42.1,"apr":47.0,"ok_mar":2,"ok_apr":2,"behind_apr":3},{"name":"AP Chemistry","n":4,"now":37.5,"mar":50.4,"apr":61.8,"ok_mar":1,"ok_apr":1,"behind_apr":3},{"name":"AP US Government - PP 100","n":7,"now":59.5,"mar":68.4,"apr":72.9,"ok_mar":4,"ok_apr":4,"behind_apr":3},{"name":"AP Physics","n":2,"now":0.0,"mar":0.0,"apr":0.0,"ok_mar":0,"ok_apr":0,"behind_apr":2},{"name":"AP Calculus BC","n":4,"now":75.0,"mar":75.0,"apr":75.0,"ok_mar":3,"ok_apr":3,"behind_apr":1},{"name":"AP Calculus AB","n":3,"now":100.0,"mar":100.0,"apr":100.0,"ok_mar":3,"ok_apr":3,"behind_apr":0},{"name":"AP Env Science","n":1,"now":99.2,"mar":100.0,"apr":100.0,"ok_mar":1,"ok_apr":1,"behind_apr":0}],"students":[{"s":"Adrienne Laswell","courses":[{"c":"AP Human Geography","now":85.5,"mar":100,"apr":100,"need_mar":72.3,"need_apr":95.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-50.0,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":242,"items_total":283}]},{"s":"Aheli Shah","courses":[{"c":"AP Human Geography","now":89.0,"mar":100,"apr":100,"need_mar":80.4,"need_apr":96.7,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-64.8,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":252,"items_total":283}]},{"s":"Aidan Wong","courses":[{"c":"AP Biology","now":0.0,"mar":0.0,"apr":0.0,"need_mar":66.7,"need_apr":96.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-38.0,"deadline":"2026-05-04","acc":0,"ipd":3.4,"days_remain":32,"items_done":0,"items_total":108},{"c":"AP US History","now":38.4,"mar":49.1,"apr":59.8,"need_mar":76.7,"need_apr":93.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-60.7,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":146,"items_total":380},{"c":"AP Lang & Comp","now":100.0,"mar":100,"apr":100,"need_mar":79.8,"need_apr":92.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-67.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":392,"items_total":392}]},{"s":"Alex Mathew","courses":[{"c":"AP Psychology","now":83.5,"mar":100,"apr":100,"need_mar":73.6,"need_apr":90.8,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-57.0,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":449,"items_total":538},{"c":"AP US Government - PP 100","now":20.7,"mar":24.9,"apr":29.2,"need_mar":83.0,"need_apr":97.2,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-69.5,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":62,"items_total":300},{"c":"AP Calculus AB","now":100.0,"mar":100,"apr":100,"need_mar":86.5,"need_apr":95.7,"ok_mar":true,"ok_apr":true,"status":"COMPLETE","gap":22.2,"deadline":"2026-05-11","acc":9860.0,"ipd":0,"days_remain":37,"items_done":146,"items_total":146},{"c":"AP Literature","now":1.9,"mar":2.1,"apr":2.4,"need_mar":87.9,"need_apr":97.5,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-78.8,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":9,"items_total":474},{"c":"AP Calculus BC","now":100.0,"mar":100,"apr":100,"need_mar":81.2,"need_apr":94.0,"ok_mar":true,"ok_apr":true,"status":"ON_TRACK","gap":-1.4,"deadline":"2026-05-11","acc":9910.0,"ipd":0,"days_remain":37,"items_done":68,"items_total":68}]},{"s":"Ali Romman","courses":[{"c":"AP Human Geography","now":78.4,"mar":100,"apr":100,"need_mar":76.9,"need_apr":96.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-58.4,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":222,"items_total":283}]},{"s":"Ananya Kakarlapudi","courses":[{"c":"AP Microeconomics","now":33.9,"mar":47.0,"apr":60.0,"need_mar":76.1,"need_apr":97.2,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-21.8,"deadline":"2026-05-04","acc":6000.0,"ipd":2.3,"days_remain":32,"items_done":38,"items_total":112},{"c":"AP Psychology","now":66.9,"mar":92.7,"apr":100,"need_mar":70.1,"need_apr":89.6,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-51.3,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":360,"items_total":538},{"c":"AP US History","now":99.7,"mar":100,"apr":100,"need_mar":76.1,"need_apr":93.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-59.8,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":379,"items_total":380},{"c":"AP Lang & Comp","now":14.3,"mar":19.6,"apr":25.0,"need_mar":69.6,"need_apr":88.6,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-51.3,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":56,"items_total":392},{"c":"AP Calculus BC","now":0.0,"mar":0.0,"apr":0.0,"need_mar":71.8,"need_apr":91.0,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-53.2,"deadline":"2026-05-11","acc":0,"ipd":0,"days_remain":37,"items_done":0,"items_total":1}]},{"s":"Aoife Huey","courses":[{"c":"AP Psychology","now":34.0,"mar":54.4,"apr":74.8,"need_mar":63.5,"need_apr":87.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-40.3,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":183,"items_total":538}]},{"s":"Artemis Schiettecatte","courses":[{"c":"AP World History","now":4.8,"mar":6.3,"apr":7.8,"need_mar":76.2,"need_apr":94.0,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-59.0,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":15,"items_total":311}]},{"s":"Austin Lin","courses":[{"c":"Physics","now":0,"mar":0,"apr":0,"need_mar":50.0,"need_apr":100,"ok_mar":false,"ok_apr":false,"status":"ON_TRACK","gap":0,"deadline":"2026-04-30","acc":0,"ipd":2.4,"days_remain":30,"items_done":0,"items_total":0},{"c":"AP Biology","now":21.3,"mar":53.2,"apr":85.2,"need_mar":59.5,"need_apr":95.2,"ok_mar":false,"ok_apr":false,"status":"ON_TRACK","gap":-4.9,"deadline":"2026-05-04","acc":8040.0,"ipd":2.7,"days_remain":32,"items_done":23,"items_total":108},{"c":"AP Human Geography","now":89.8,"mar":100,"apr":100,"need_mar":74.3,"need_apr":95.7,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-53.6,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":254,"items_total":283}]},{"s":"Austin Way","courses":[{"c":"Physics","now":100.0,"mar":100.0,"apr":100.0,"need_mar":50.0,"need_apr":100,"ok_mar":true,"ok_apr":true,"status":"COMPLETE","gap":100.0,"deadline":"2026-04-30","acc":8480.0,"ipd":0,"days_remain":30,"items_done":72,"items_total":72},{"c":"AP Human Geography","now":0.0,"mar":0.0,"apr":0.0,"need_mar":67.3,"need_apr":94.5,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-40.7,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":0,"items_total":283},{"c":"AP US History","now":98.9,"mar":100,"apr":100,"need_mar":74.1,"need_apr":92.6,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-56.2,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":376,"items_total":380},{"c":"AP Lang & Comp","now":23.7,"mar":31.6,"apr":39.5,"need_mar":71.4,"need_apr":89.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-54.2,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":93,"items_total":392},{"c":"AP CS A","now":50.7,"mar":67.6,"apr":84.5,"need_mar":69.8,"need_apr":87.2,"ok_mar":true,"ok_apr":true,"status":"ON_TRACK","gap":-2.2,"deadline":"2026-05-15","acc":6080.0,"ipd":0.9,"days_remain":41,"items_done":36,"items_total":71}]},{"s":"Benny Valles","courses":[{"c":"AP Human Geography","now":66.1,"mar":99.1,"apr":100,"need_mar":71.4,"need_apr":95.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-48.4,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":187,"items_total":283}]},{"s":"Boris Dudarev","courses":[{"c":"AP Human Geography","now":42.8,"mar":71.9,"apr":100,"need_mar":67.3,"need_apr":94.5,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-40.7,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":121,"items_total":283}]},{"s":"Branson Pfiester","courses":[{"c":"AP Biology","now":26.9,"mar":43.0,"apr":59.1,"need_mar":70.2,"need_apr":96.5,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-17.8,"deadline":"2026-05-04","acc":9010.0,"ipd":2.5,"days_remain":32,"items_done":29,"items_total":108},{"c":"AP Human Geography","now":98.6,"mar":100,"apr":100,"need_mar":81.8,"need_apr":97.0,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-67.3,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":279,"items_total":283}]},{"s":"Caleb Walker","courses":[{"c":"AP Env Science","now":99.2,"mar":100,"apr":100,"need_mar":67.5,"need_apr":86.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-49.4,"deadline":"2026-05-15","acc":0,"ipd":0,"days_remain":41,"items_done":611,"items_total":616},{"c":"AP US History","now":62.9,"mar":82.1,"apr":100,"need_mar":75.3,"need_apr":92.9,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-58.3,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":239,"items_total":380},{"c":"AP Lang & Comp","now":70.9,"mar":84.2,"apr":97.5,"need_mar":79.8,"need_apr":92.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-67.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":278,"items_total":392}]},{"s":"Cruce Saunders IV","courses":[{"c":"Physics","now":61.1,"mar":61.1,"apr":61.1,"need_mar":50.0,"need_apr":100,"ok_mar":true,"ok_apr":false,"status":"AHEAD","gap":61.1,"deadline":"2026-04-30","acc":7860.0,"ipd":0.9,"days_remain":30,"items_done":44,"items_total":72},{"c":"AP US History","now":99.7,"mar":100,"apr":100,"need_mar":76.7,"need_apr":93.3,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-60.7,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":379,"items_total":380},{"c":"AP Lang & Comp","now":9.4,"mar":11.2,"apr":12.9,"need_mar":80.0,"need_apr":92.5,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-68.1,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":37,"items_total":392}]},{"s":"Ella Dietz","courses":[{"c":"AP World History","now":97.7,"mar":100,"apr":100,"need_mar":75.9,"need_apr":94.0,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-58.5,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":304,"items_total":311}]},{"s":"Ella Gremont","courses":[{"c":"AP Psychology","now":0.0,"mar":0.0,"apr":0.0,"need_mar":73.6,"need_apr":90.8,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-57.0,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":0,"items_total":538},{"c":"AP US History","now":39.2,"mar":51.2,"apr":63.2,"need_mar":75.3,"need_apr":92.9,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-58.3,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":149,"items_total":380},{"c":"AP Lang & Comp","now":100.0,"mar":100,"apr":100,"need_mar":79.8,"need_apr":92.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-67.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":392,"items_total":392},{"c":"AP Chemistry","now":13.6,"mar":29.2,"apr":44.9,"need_mar":60.9,"need_apr":93.5,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-15.3,"deadline":"2026-05-05","acc":9830.0,"ipd":3.1,"days_remain":33,"items_done":16,"items_total":118}]},{"s":"Elle Liemandt","courses":[{"c":"AP Microeconomics","now":0.0,"mar":0.0,"apr":0.0,"need_mar":59.5,"need_apr":95.2,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-24.4,"deadline":"2026-05-04","acc":0,"ipd":3.5,"days_remain":32,"items_done":0,"items_total":112},{"c":"AP Psychology","now":99.8,"mar":100,"apr":100,"need_mar":73.6,"need_apr":90.8,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-57.0,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":537,"items_total":538},{"c":"AP US Government - PP 100","now":94.7,"mar":100,"apr":100,"need_mar":83.9,"need_apr":97.3,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-71.2,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":284,"items_total":300},{"c":"AP Literature","now":0.0,"mar":0.0,"apr":0.0,"need_mar":86.3,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-76.1,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":0,"items_total":474},{"c":"AP Calculus BC","now":100.0,"mar":100,"apr":100,"need_mar":81.7,"need_apr":94.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-52.2,"deadline":"2026-05-11","acc":9880.0,"ipd":0,"days_remain":37,"items_done":100,"items_total":100}]},{"s":"Emily Smith","courses":[{"c":"AP Biology","now":19.4,"mar":55.9,"apr":92.4,"need_mar":57.5,"need_apr":95.0,"ok_mar":true,"ok_apr":true,"status":"ON_TRACK","gap":-5.7,"deadline":"2026-05-04","acc":9270.0,"ipd":2.9,"days_remain":32,"items_done":21,"items_total":108},{"c":"AP Microeconomics","now":8.9,"mar":25.7,"apr":42.4,"need_mar":57.5,"need_apr":95.0,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-15.2,"deadline":"2026-05-04","acc":6000.0,"ipd":3.3,"days_remain":32,"items_done":10,"items_total":112},{"c":"AP US Government - PP 100","now":96.7,"mar":100,"apr":100,"need_mar":80.4,"need_apr":96.7,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-64.8,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":290,"items_total":300},{"c":"AP Literature","now":27.6,"mar":31.6,"apr":35.5,"need_mar":86.3,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-76.1,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":131,"items_total":474}]},{"s":"Emma Cotner","courses":[{"c":"AP Biology","now":35.2,"mar":51.2,"apr":67.2,"need_mar":73.8,"need_apr":96.9,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-19.2,"deadline":"2026-05-04","acc":9460.0,"ipd":2.3,"days_remain":32,"items_done":38,"items_total":108},{"c":"AP World History","now":98.1,"mar":100,"apr":100,"need_mar":77.5,"need_apr":94.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-61.4,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":305,"items_total":311},{"c":"AP CS A","now":0.0,"mar":0.0,"apr":0.0,"need_mar":73.5,"need_apr":88.8,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-58.8,"deadline":"2026-05-15","acc":0,"ipd":1.7,"days_remain":41,"items_done":0,"items_total":71}]},{"s":"Erika Rigby","courses":[{"c":"AP Biology","now":14.8,"mar":20.5,"apr":26.2,"need_mar":76.1,"need_apr":97.2,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-40.9,"deadline":"2026-05-04","acc":9180.0,"ipd":2.9,"days_remain":32,"items_done":16,"items_total":108},{"c":"AP Human Geography","now":98.6,"mar":100,"apr":100,"need_mar":79.3,"need_apr":96.6,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-62.8,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":279,"items_total":283}]},{"s":"Estella Estrada","courses":[{"c":"AP Microeconomics","now":13.4,"mar":30.1,"apr":46.9,"need_mar":61.4,"need_apr":95.5,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-21.7,"deadline":"2026-05-04","acc":7300.0,"ipd":3.3,"days_remain":32,"items_done":15,"items_total":112},{"c":"AP US Government - PP 100","now":13.7,"mar":30.8,"apr":47.8,"need_mar":60.0,"need_apr":93.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-27.3,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":41,"items_total":300},{"c":"AP Lang & Comp","now":4.3,"mar":10.8,"apr":17.3,"need_mar":51.0,"need_apr":81.6,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-20.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":17,"items_total":392}]},{"s":"Evan Klein","courses":[{"c":"AP Human Geography","now":23.3,"mar":31.9,"apr":40.4,"need_mar":75.7,"need_apr":95.9,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-56.2,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":66,"items_total":283},{"c":"AP US Government - PP 100","now":13.7,"mar":23.4,"apr":33.2,"need_mar":66.7,"need_apr":94.4,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-39.6,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":41,"items_total":300},{"c":"AP CS A","now":90.1,"mar":100,"apr":100,"need_mar":68.3,"need_apr":86.6,"ok_mar":true,"ok_apr":true,"status":"AHEAD","gap":39.5,"deadline":"2026-05-15","acc":4040.0,"ipd":0.2,"days_remain":41,"items_done":64,"items_total":71}]},{"s":"Geetesh Parelly","courses":[{"c":"AP US History","now":15.3,"mar":19.5,"apr":23.7,"need_mar":76.7,"need_apr":93.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-60.7,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":58,"items_total":380},{"c":"AP Calculus AB","now":100.0,"mar":100,"apr":100,"need_mar":81.4,"need_apr":94.1,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-49.1,"deadline":"2026-05-11","acc":8800.0,"ipd":0,"days_remain":37,"items_done":135,"items_total":135},{"c":"AP Lang & Comp","now":100.0,"mar":100,"apr":100,"need_mar":79.8,"need_apr":92.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-67.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":392,"items_total":392},{"c":"AP Chemistry","now":14.4,"mar":21.2,"apr":27.9,"need_mar":72.3,"need_apr":95.4,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-35.6,"deadline":"2026-05-05","acc":9920.0,"ipd":3.1,"days_remain":33,"items_done":17,"items_total":118},{"c":"AP Literature","now":0.0,"mar":0.0,"apr":0.0,"need_mar":86.2,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-75.9,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":0,"items_total":474}]},{"s":"Grady Swanson","courses":[{"c":"AP Biology","now":8.3,"mar":29.2,"apr":50.0,"need_mar":55.3,"need_apr":94.7,"ok_mar":false,"ok_apr":false,"status":"ON_TRACK","gap":-7.9,"deadline":"2026-05-04","acc":9750.0,"ipd":3.1,"days_remain":32,"items_done":9,"items_total":108},{"c":"AP Human Geography","now":80.6,"mar":100,"apr":100,"need_mar":76.6,"need_apr":96.1,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-57.9,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":228,"items_total":283}]},{"s":"Grey Walker","courses":[{"c":"AP Human Geography","now":17.0,"mar":33.9,"apr":50.9,"need_mar":62.5,"need_apr":93.8,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-31.9,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":48,"items_total":283}]},{"s":"Gus Castillo","courses":[{"c":"AP Human Geography","now":60.8,"mar":100,"apr":100,"need_mar":65.4,"need_apr":94.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-37.3,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":172,"items_total":283}]},{"s":"Jackson Price","courses":[{"c":"Physics","now":68.1,"mar":68.1,"apr":68.1,"need_mar":50.0,"need_apr":100,"ok_mar":true,"ok_apr":false,"status":"AHEAD","gap":68.1,"deadline":"2026-04-30","acc":8500.0,"ipd":0.8,"days_remain":30,"items_done":49,"items_total":72},{"c":"AP World History","now":100.0,"mar":100,"apr":100,"need_mar":77.5,"need_apr":94.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-61.4,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":311,"items_total":311},{"c":"AP CS A","now":35.2,"mar":43.0,"apr":50.7,"need_mar":76.1,"need_apr":89.9,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-27.8,"deadline":"2026-05-15","acc":5690.0,"ipd":1.1,"days_remain":41,"items_done":25,"items_total":71}]},{"s":"Jacob Kuchinsky","courses":[{"c":"AP Human Geography","now":98.6,"mar":100,"apr":100,"need_mar":71.0,"need_apr":95.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-47.5,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":279,"items_total":283},{"c":"AP CS A","now":0.0,"mar":0.0,"apr":0.0,"need_mar":43.5,"need_apr":76.1,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-11.1,"deadline":"2026-05-15","acc":0,"ipd":1.7,"days_remain":41,"items_done":0,"items_total":71}]},{"s":"Jaiden Bhakta","courses":[{"c":"AP Biology","now":13.0,"mar":22.7,"apr":32.4,"need_mar":67.3,"need_apr":96.2,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-29.0,"deadline":"2026-05-04","acc":9180.0,"ipd":3.0,"days_remain":32,"items_done":14,"items_total":108},{"c":"AP Human Geography","now":29.0,"mar":35.2,"apr":41.4,"need_mar":82.5,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-68.6,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":82,"items_total":283}]},{"s":"Jeremy Wang","courses":[{"c":"Physics","now":88.9,"mar":88.9,"apr":88.9,"need_mar":50.0,"need_apr":100,"ok_mar":true,"ok_apr":false,"status":"AHEAD","gap":88.9,"deadline":"2026-04-30","acc":9020.0,"ipd":0.3,"days_remain":30,"items_done":64,"items_total":72},{"c":"AP Psychology","now":10.8,"mar":14.1,"apr":17.4,"need_mar":73.6,"need_apr":90.8,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-57.0,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":58,"items_total":538},{"c":"AP US History","now":3.7,"mar":4.9,"apr":6.2,"need_mar":73.8,"need_apr":92.5,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-55.7,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":14,"items_total":380},{"c":"AP Lang & Comp","now":100.0,"mar":100,"apr":100,"need_mar":75.5,"need_apr":90.8,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-60.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":392,"items_total":392}]},{"s":"Jessica Owenby","courses":[{"c":"AP Human Geography","now":69.6,"mar":89.7,"apr":100,"need_mar":78.8,"need_apr":96.5,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-61.9,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":197,"items_total":283}]},{"s":"Ju Orloff","courses":[{"c":"AP Biology","now":0.0,"mar":0.0,"apr":0.0,"need_mar":72.6,"need_apr":96.8,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-49.2,"deadline":"2026-05-04","acc":0,"ipd":3.4,"days_remain":32,"items_done":0,"items_total":108},{"c":"AP World History","now":26.0,"mar":36.6,"apr":47.2,"need_mar":72.2,"need_apr":93.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-52.1,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":81,"items_total":311}]},{"s":"Kavin Lingham","courses":[{"c":"AP World History","now":92.6,"mar":100,"apr":100,"need_mar":73.7,"need_apr":93.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-54.7,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":288,"items_total":311}]},{"s":"Liam Lenhardt","courses":[{"c":"AP World History","now":30.5,"mar":56.0,"apr":81.5,"need_mar":62.3,"need_apr":90.6,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-34.6,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":95,"items_total":311}]},{"s":"Liam Moore","courses":[{"c":"AP Human Geography","now":2.1,"mar":12.7,"apr":23.3,"need_mar":50.0,"need_apr":91.7,"ok_mar":false,"ok_apr":false,"status":"ON_TRACK","gap":-8.6,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":6,"items_total":283}]},{"s":"Luca Sanchez","courses":[{"c":"AP Human Geography","now":42.4,"mar":66.9,"apr":91.3,"need_mar":69.5,"need_apr":94.9,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-44.8,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":120,"items_total":283}]},{"s":"Maddie Price","courses":[{"c":"Physics","now":4.2,"mar":4.2,"apr":4.2,"need_mar":50.0,"need_apr":100,"ok_mar":false,"ok_apr":false,"status":"ON_TRACK","gap":4.2,"deadline":"2026-04-30","acc":10000.0,"ipd":2.3,"days_remain":30,"items_done":3,"items_total":72},{"c":"AP US Government - PP 100","now":83.3,"mar":100,"apr":100,"need_mar":80.9,"need_apr":96.8,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-65.6,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":250,"items_total":300},{"c":"AP Calculus AB","now":100.0,"mar":100,"apr":100,"need_mar":86.5,"need_apr":95.7,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-75.9,"deadline":"2026-05-11","acc":8820.0,"ipd":0,"days_remain":37,"items_done":12,"items_total":12},{"c":"AP Physics","now":0.0,"mar":0.0,"apr":0.0,"need_mar":76.9,"need_apr":100,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-54.7,"deadline":"2026-04-30","acc":0,"ipd":0,"days_remain":30,"items_done":0,"items_total":1},{"c":"AP Literature","now":2.3,"mar":2.7,"apr":3.0,"need_mar":86.2,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-75.9,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":11,"items_total":474}]},{"s":"Madeleine Grams","courses":[{"c":"AP US History","now":40.0,"mar":50.5,"apr":61.1,"need_mar":77.4,"need_apr":93.5,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-62.0,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":152,"items_total":380},{"c":"AP Lang & Comp","now":100.0,"mar":100,"apr":100,"need_mar":79.8,"need_apr":92.4,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-67.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":392,"items_total":392}]},{"s":"Malaika Negrete","courses":[{"c":"AP Psychology","now":0.0,"mar":0.0,"apr":0.0,"need_mar":59.6,"need_apr":86.0,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-33.9,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":0,"items_total":538},{"c":"AP US History","now":0.0,"mar":0.0,"apr":0.0,"need_mar":61.8,"need_apr":89.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-35.2,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":0,"items_total":380}]},{"s":"Michael Cai","courses":[{"c":"AP Biology","now":8.3,"mar":17.9,"apr":27.6,"need_mar":62.2,"need_apr":95.6,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-21.2,"deadline":"2026-05-04","acc":5100.0,"ipd":3.1,"days_remain":32,"items_done":9,"items_total":108},{"c":"AP World History","now":47.9,"mar":65.9,"apr":83.8,"need_mar":73.3,"need_apr":93.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-54.1,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":149,"items_total":311}]},{"s":"Mollie McDougald","courses":[{"c":"AP Psychology","now":4.8,"mar":8.3,"apr":11.7,"need_mar":61.0,"need_apr":86.4,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-36.2,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":26,"items_total":538},{"c":"AP World History","now":1.9,"mar":3.3,"apr":4.7,"need_mar":64.3,"need_apr":91.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-38.2,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":6,"items_total":311}]},{"s":"Paty Margain-Junco","courses":[{"c":"AP Psychology","now":37.9,"mar":55.7,"apr":73.5,"need_mar":67.1,"need_apr":88.6,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-46.4,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":204,"items_total":538},{"c":"AP US History","now":63.9,"mar":80.8,"apr":97.6,"need_mar":77.4,"need_apr":93.5,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-62.0,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":243,"items_total":380},{"c":"AP Lang & Comp","now":15.3,"mar":18.2,"apr":21.2,"need_mar":79.5,"need_apr":92.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-67.2,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":60,"items_total":392},{"c":"AP Chemistry","now":28.0,"mar":51.3,"apr":74.6,"need_mar":64.7,"need_apr":94.1,"ok_mar":false,"ok_apr":false,"status":"BEHIND","gap":-13.1,"deadline":"2026-05-05","acc":9820.0,"ipd":2.8,"days_remain":33,"items_done":33,"items_total":118}]},{"s":"Reuben Runacres","courses":[{"c":"AP Psychology","now":20.6,"mar":26.9,"apr":33.3,"need_mar":73.6,"need_apr":90.8,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-57.0,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":111,"items_total":538},{"c":"AP Literature","now":33.8,"mar":38.6,"apr":43.5,"need_mar":86.2,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-75.9,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":160,"items_total":474}]},{"s":"Saeed Tarawneh","courses":[{"c":"AP Psychology","now":17.5,"mar":23.9,"apr":30.3,"need_mar":70.9,"need_apr":89.9,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-52.6,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":94,"items_total":538},{"c":"AP World History","now":98.1,"mar":100,"apr":100,"need_mar":75.9,"need_apr":94.0,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-58.5,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":305,"items_total":311}]},{"s":"Sara Beth Way","courses":[{"c":"Physics","now":98.6,"mar":98.6,"apr":98.6,"need_mar":50.0,"need_apr":100,"ok_mar":true,"ok_apr":true,"status":"AHEAD","gap":98.6,"deadline":"2026-04-30","acc":7340.0,"ipd":0,"days_remain":30,"items_done":71,"items_total":72},{"c":"AP US History","now":44.2,"mar":53.7,"apr":63.2,"need_mar":80.2,"need_apr":94.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-66.7,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":168,"items_total":380},{"c":"AP Lang & Comp","now":100.0,"mar":100,"apr":100,"need_mar":81.1,"need_apr":92.9,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-69.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":392,"items_total":392}]},{"s":"Sloane Price","courses":[{"c":"Physics","now":4.2,"mar":4.2,"apr":4.2,"need_mar":50.0,"need_apr":100,"ok_mar":false,"ok_apr":false,"status":"ON_TRACK","gap":4.2,"deadline":"2026-04-30","acc":8450.0,"ipd":2.3,"days_remain":30,"items_done":3,"items_total":72},{"c":"AP Psychology","now":99.8,"mar":100,"apr":100,"need_mar":73.6,"need_apr":90.8,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-57.0,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":537,"items_total":538},{"c":"AP US Government - PP 100","now":94.0,"mar":100,"apr":100,"need_mar":80.9,"need_apr":96.8,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-65.6,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":282,"items_total":300},{"c":"AP Physics","now":0.0,"mar":0.0,"apr":0.0,"need_mar":76.9,"need_apr":100,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-54.7,"deadline":"2026-04-30","acc":0,"ipd":0,"days_remain":30,"items_done":0,"items_total":1},{"c":"AP Literature","now":1.9,"mar":2.2,"apr":2.4,"need_mar":86.2,"need_apr":97.1,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-75.9,"deadline":"2026-05-06","acc":0,"ipd":0,"days_remain":34,"items_done":9,"items_total":474},{"c":"AP Calculus BC","now":100.0,"mar":100,"apr":100,"need_mar":81.2,"need_apr":94.0,"ok_mar":true,"ok_apr":true,"status":"COMPLETE","gap":31.0,"deadline":"2026-05-11","acc":9170.0,"ipd":0,"days_remain":37,"items_done":8,"items_total":8}]},{"s":"Sloka Vudumu","courses":[{"c":"AP US History","now":31.6,"mar":40.4,"apr":49.1,"need_mar":76.7,"need_apr":93.3,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-60.7,"deadline":"2026-05-08","acc":0,"ipd":0,"days_remain":36,"items_done":120,"items_total":380},{"c":"AP Lang & Comp","now":30.4,"mar":36.0,"apr":41.7,"need_mar":79.8,"need_apr":92.4,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-67.8,"deadline":"2026-05-13","acc":0,"ipd":0,"days_remain":39,"items_done":119,"items_total":392},{"c":"AP Chemistry","now":94.1,"mar":100,"apr":100,"need_mar":75.0,"need_apr":95.8,"ok_mar":true,"ok_apr":true,"status":"AHEAD","gap":39.1,"deadline":"2026-05-05","acc":9160.0,"ipd":0.2,"days_remain":33,"items_done":111,"items_total":118}]},{"s":"Stella Cole","courses":[{"c":"AP World History","now":81.4,"mar":100,"apr":100,"need_mar":74.7,"need_apr":93.7,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-56.4,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":253,"items_total":311}]},{"s":"Stella Grams","courses":[{"c":"AP World History","now":100.0,"mar":100,"apr":100,"need_mar":74.4,"need_apr":93.6,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-55.8,"deadline":"2026-05-07","acc":0,"ipd":0,"days_remain":35,"items_done":311,"items_total":311}]},{"s":"Sydney Barba","courses":[{"c":"AP Human Geography","now":58.0,"mar":100,"apr":100,"need_mar":65.4,"need_apr":94.2,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-37.3,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":164,"items_total":283}]},{"s":"Vera Li","courses":[{"c":"AP Biology","now":60.2,"mar":100,"apr":100,"need_mar":59.5,"need_apr":95.2,"ok_mar":true,"ok_apr":true,"status":"AHEAD","gap":31.2,"deadline":"2026-05-04","acc":9210.0,"ipd":1.5,"days_remain":32,"items_done":65,"items_total":108},{"c":"AP Human Geography","now":98.6,"mar":100,"apr":100,"need_mar":82.4,"need_apr":97.1,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-68.3,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":279,"items_total":283},{"c":"AP Psychology","now":40.3,"mar":58.1,"apr":75.9,"need_mar":68.1,"need_apr":88.9,"ok_mar":false,"ok_apr":false,"status":"AT_RISK","gap":-47.9,"deadline":"2026-05-12","acc":0,"ipd":0,"days_remain":38,"items_done":217,"items_total":538}]},{"s":"Zayen Szpitalak","courses":[{"c":"AP Human Geography","now":58.3,"mar":90.7,"apr":100,"need_mar":70.0,"need_apr":95.0,"ok_mar":true,"ok_apr":true,"status":"AT_RISK","gap":-45.8,"deadline":"2026-05-05","acc":0,"ipd":0,"days_remain":33,"items_done":165,"items_total":283}]}]};
+const SUBJ=P.subjects, D=P.students;
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function barCol(proj,need){
+  if(!need||need===0) return '#166534';
+  const g=proj-need;
+  if(g>=-5) return '#166534';
+  if(g>=-15) return '#854d0e';
+  return '#991b1b';
+}
+function icon(proj,need){
+  if(!need||need===0) return '<span class="ico-ok">&#10003;</span>';
+  if(proj>=100) return '<span class="ico-ok">&#10003;</span>';
+  const g=proj-need;
+  if(g>=-5) return '<span class="ico-ok">&#10003;</span>';
+  if(g>=-15) return '<span class="ico-warn">~</span>';
+  return '<span class="ico-bad">&#10007;</span>';
+}
+
+// ── SUBJECT TABLE
+function renderSubjects(){
+  const rows = SUBJ.map((s,i)=>{
+    const bg = i%2===1?'background:#f9fafb':'';
+    const nowC = barCol(s.now, 50);
+    const marC = barCol(s.mar, 50);
+    const aprC = barCol(s.apr, 75);
+    const badN = s.behind_apr;
+    const okN  = s.ok_apr;
+    return `<tr style="${bg}">
+      <td style="font-weight:500">${s.name}</td>
+      <td class="c">${s.n}</td>
+      <td class="c">
+        <div class="pbar-cell">
+          <span class="pbar-val" style="color:${nowC}">${s.now}%</span>
+          <div class="pbar-track"><div class="pbar-fill" style="width:${s.now}%;background:${nowC}"></div></div>
+        </div>
+      </td>
+      <td class="c">
+        <div class="pbar-cell">
+          <span class="pbar-val" style="color:${marC}">${s.mar}%</span>
+          <div class="pbar-track"><div class="pbar-fill" style="width:${s.mar}%;background:${marC}"></div></div>
+          <span style="font-size:10px;color:#9ca3af">${s.ok_mar} of ${s.n} on track</span>
+        </div>
+      </td>
+      <td class="c">
+        <div class="pbar-cell">
+          <span class="pbar-val" style="color:${aprC}">${s.apr}%</span>
+          <div class="pbar-track"><div class="pbar-fill" style="width:${s.apr}%;background:${aprC}"></div></div>
+          <span style="font-size:10px;color:#9ca3af">${s.ok_apr} of ${s.n} on track</span>
+        </div>
+      </td>
+      <td class="c"><span class="${badN>0?'bad-count':'ok-count'}">${badN}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('subj-tbl').innerHTML=`<thead><tr>
+    <th>Course</th>
+    <th class="c">Students</th>
+    <th class="c">Avg now</th>
+    <th class="c">Proj Mar 31</th>
+    <th class="c">Proj Apr 15</th>
+    <th class="c">Behind Apr 15</th>
+  </tr></thead><tbody>${rows}</tbody>`;
+}
+renderSubjects();
+
+// ── STUDENT GRID
+function studentBadge(courses, fProj, fNeed, label){
+  const behind = courses.filter(c=>c[fProj] < c[fNeed]-5).length;
+  if(behind===0) return `<span class="badge b-g">${label}: all ok</span>`;
+  if(behind===courses.length) return `<span class="badge b-r">${label}: ${behind} behind</span>`;
+  return `<span class="badge b-a">${label}: ${behind}/${courses.length}</span>`;
+}
+
+function renderStudents(){
+  const q  = document.getElementById('search').value.toLowerCase();
+  const vf = document.getElementById('vf').value;
+  const sb = document.getElementById('sb').value;
+
+  let students = D.filter(s=>{
+    if(q && !s.s.toLowerCase().includes(q)) return false;
+    if(vf==='risk')  return s.courses.some(c=>c.need_apr>0 && c.apr < c.need_apr-5);
+    if(vf==='ok')    return s.courses.every(c=>c.need_apr===0||c.apr >= c.need_apr-5);
+    return true;
+  });
+
+  if(sb==='worst'){
+    students=students.slice().sort((a,b)=>{
+      const ag=Math.min(...a.courses.map(c=>c.apr-(c.need_apr||0)));
+      const bg=Math.min(...b.courses.map(c=>c.apr-(c.need_apr||0)));
+      return ag-bg;
+    });
+  } else if(sb==='best'){
+    students=students.slice().sort((a,b)=>{
+      const aa=a.courses.reduce((s,c)=>s+c.apr,0)/a.courses.length;
+      const ba=b.courses.reduce((s,c)=>s+c.apr,0)/b.courses.length;
+      return ba-aa;
+    });
+  }
+
+  document.getElementById('student-count').textContent=`${students.length} student${students.length!==1?'s':''}`;
+
+  document.getElementById('grid').innerHTML = students.map(s=>{
+    const marBadge = studentBadge(s.courses,'mar','need_mar','Mar');
+    const aprBadge = studentBadge(s.courses,'apr','need_apr','Apr');
+
+    const rows = s.courses.map(c=>{
+      const marC = barCol(c.mar, c.need_mar);
+      const aprC = barCol(c.apr, c.need_apr);
+      return `<div class="course-row">
+        <div class="course-name" title="${c.c} · exam deadline ${c.deadline||'?'}">${c.c}</div>
+        <div class="proj-cell">
+          <span class="proj-pct" style="color:${barCol(c.now,50)}">${c.now}%</span>
+          <div class="proj-bar"><div class="proj-fill" style="width:${c.now}%;background:${barCol(c.now,50)}"></div></div>
+        </div>
+        <div class="proj-cell">
+          ${icon(c.mar,c.need_mar)}
+          <span class="proj-pct" style="color:${marC}">${c.mar}%</span>
+          <div class="proj-bar"><div class="proj-fill" style="width:${c.mar}%;background:${marC}"></div></div>
+          <span class="proj-need">need ${c.need_mar}%</span>
+        </div>
+        <div class="proj-cell">
+          ${icon(c.apr,c.need_apr)}
+          <span class="proj-pct" style="color:${aprC}">${c.apr}%</span>
+          <div class="proj-bar"><div class="proj-fill" style="width:${c.apr}%;background:${aprC}"></div></div>
+          <span class="proj-need">need ${c.need_apr}%</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="student-card">
+      <div class="card-head">
+        <span class="card-name">${s.s}</span>
+        <div class="card-badges">${marBadge} ${aprBadge}</div>
+      </div>
+      <div class="col-heads">
+        <div>Course</div><div>Now</div><div>Mar 31</div><div>Apr 15</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+renderStudents();
+</script>
+</body>
+</html>
